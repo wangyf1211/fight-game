@@ -1,7 +1,17 @@
 <template>
-  <div class="container">
+  <div class="_container">
     <div class="left">
-      <h2>Player 1</h2>
+      <h3>Player 1</h3>
+      <div>
+        <span>生命值</span>
+        <div class="progress" style="width:220px;">
+          <div
+            class="progress-bar"
+            role="progressbar"
+            :style="{width:player1Life+'%',background:'#5cb85c'}"
+          >{{player1Life}}</div>
+        </div>
+      </div>
       <div class="player-1">
         <button v-show="!init" class="submit" @click="toogle">{{buttonContent}}</button>
       </div>
@@ -15,17 +25,35 @@
       </div>
     </div>
     <div class="right">
-      <h2>Player 2</h2>
+      <h3>Player 2</h3>
+      <div>
+        <span>生命值</span>
+        <div class="progress" style="width:220px;">
+          <div
+            class="progress-bar"
+            role="progressbar"
+            :style="{width:player2Life+'%',background:'#5cb85c'}"
+          >{{player2Life}}</div>
+        </div>
+      </div>
       <div class="player-2">
         <button v-show="player2Ready" class="submit" @click="toogle">{{buttonContent}}</button>
       </div>
     </div>
-    <div class="bottom" v-if="player2Ready">比赛开始中...</div>
+    <div class="bottom" v-if="player2Ready">
+      <Skill name="skill-bar" v-on:attack="player1Attack"/>
+      <div class="fight-content" v-html="gameTip"></div>
+      <Skill name="skill-bar"/>
+    </div>
   </div>
 </template>
 <script>
+import Skill from "@/components/Skill";
 export default {
   name: "role",
+  components: {
+    Skill
+  },
   data() {
     return {
       roles: [
@@ -57,11 +85,14 @@ export default {
         "角色选定，等待电脑玩家选定角色",
         "开始游戏中..."
       ],
-      selectIndex1: 0,
-      selectIndex2: 0,
+      selectIndex1: 10,
+      selectIndex2: 10,
       init: true,
       player1Ready: false,
-      player2Ready: false
+      player2Ready: false,
+      player1Life: 100,
+      player2Life: 100,
+      gameTip: "对战进行中..."
     };
   },
   computed: {
@@ -99,7 +130,7 @@ export default {
       let image = new Image();
       image.src = this.roles[this.selectIndex1].img;
       image.style =
-        "display:block;width:300px;height:300px;object-fit:cover;border-radius:8px;margin-top:10px;border:3px solid #eee;position:relative;left:5px;";
+        "display:block;width:250px;height:250px;object-fit:cover;border-radius:8px;margin:10px;border:3px solid #eee;position:relative;left:5px;";
       div.insertBefore(image, button);
     },
     selectIndex2() {
@@ -113,7 +144,7 @@ export default {
       //   let image = new Image();
       image.src = this.roles[this.selectIndex2].img;
       image.style =
-        "display:block;width:300px;height:300px;object-fit:cover;border-radius:8px;margin-top:10px;border:3px solid #eee;";
+        "display:block;width:250px;height:250px;object-fit:cover;border-radius:8px;margin:10px;border:3px solid #eee;";
       div.insertBefore(image, button);
     },
     select() {
@@ -130,6 +161,7 @@ export default {
           imgs[index].style = "cursor:unset;";
         });
         this.player1Ready = false;
+        this.gameTip = "对战进行中...";
       }
     },
     player1Ready() {
@@ -139,6 +171,26 @@ export default {
         setTimeout(() => {
           this.player2Ready = true;
         }, 0);
+      }
+    },
+    player1Life() {
+      let lifeBar = document.querySelectorAll(".progress-bar")[0];
+      if (this.player1Life >= 90 && this.player1Life <= 100) {
+        lifeBar.style = "background:#5cb85c";
+      } else if (this.player1Life >= 50 && this.player1Life < 90) {
+        lifeBar.style = "background:#f0ad4e";
+      } else if (this.player1Life < 50) {
+        lifeBar.style = "background:#d9534f";
+      }
+    },
+    player2Life() {
+      let lifeBar = document.querySelectorAll(".progress-bar")[1];
+      if (this.player2Life >= 90 && this.player2Life <= 100) {
+        lifeBar.style = "background:#5cb85c";
+      } else if (this.player2Life >= 50 && this.player2Life < 90) {
+        lifeBar.style = "background:#f0ad4e";
+      } else if (this.player2Life < 50) {
+        lifeBar.style = "background:#d9534f";
       }
     }
   },
@@ -164,15 +216,29 @@ export default {
       arr[index].style =
         "border: 4px solid #f40303 !important;transform: scale(1.05, 1.05);";
       this.selectIndex2 = index;
+    },
+    player1Attack(skill) {
+      if (this.player2Life > 0) {
+        if (this.player2Life - skill.harm >= 0) {
+          this.player2Life -= skill.harm;
+        } else {
+          this.player2Life = 0;
+        }
+        this.gameTip +=
+          "<br>玩家2被" + skill.name + "伤害了" + skill.harm + "点";
+      } else {
+        alert("player2 is die");
+      }
     }
   }
 };
 </script>
 <style scoped>
-.container {
+._container {
+  color: #fff;
   display: grid;
   grid-template-areas: "a b c" "d d d";
-  grid-template-rows: 500px 1fr;
+  grid-template-rows: 450px 1fr;
 }
 .left {
   grid-area: a;
@@ -185,18 +251,20 @@ export default {
 }
 .bottom {
   grid-area: d;
-  background: rgba(10, 10, 10, 0.5);
-  width: 80%;
   margin: 0 auto;
-  border-radius: 8px;
-  height: 45vh;
   font-size: 1.5em;
   color: #ddd;
+  display: flex;
+  justify-content: space-between;
+  width: 80%;
 }
 .title {
   display: inline-block;
   margin-bottom: 30px;
   font-size: 1.5em;
+  padding: 10px 24% 10px;
+  background: rgba(62, 62, 62, 0.7);
+  border-radius: 5px;
 }
 .roles {
   display: flex;
@@ -244,6 +312,25 @@ export default {
 .player-1 img,
 .player-1 button {
   margin: 20px 0 0 0;
+}
+
+.left div:first-of-type,
+.right div:first-of-type {
+  display: flex;
+  align-items: center;
+}
+.left div:first-of-type span,
+.right div:first-of-type span {
+  display: block;
+  margin: 0 10px 0 10px;
+  color: #eee;
+}
+
+.fight-content {
+  background: rgba(27, 27, 27, 0.5);
+  width: 80%;
+  border-radius: 8px;
+  padding: 10px;
 }
 </style>
 
