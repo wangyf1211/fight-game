@@ -2,7 +2,9 @@
   <div class="container">
     <div class="left">
       <h2>Player 1</h2>
-      <div class="player-1"></div>
+      <div class="player-1">
+        <button v-show="!init" class="submit" @click="toogle">{{buttonContent}}</button>
+      </div>
     </div>
     <div class="middle">
       <span class="title">{{computedTitle}}</span>
@@ -11,12 +13,14 @@
           <img :src="role.img" :alt="role.roleName" @click="selectRole(index)">
         </div>
       </div>
-      <button class="submit" @click="toogle">{{buttonContent}}</button>
     </div>
     <div class="right">
       <h2>Player 2</h2>
-      <div class="player-2"></div>
+      <div class="player-2">
+        <button v-show="player2Ready" class="submit" @click="toogle">{{buttonContent}}</button>
+      </div>
     </div>
+    <div class="bottom" v-if="player2Ready">比赛开始中...</div>
   </div>
 </template>
 <script>
@@ -47,10 +51,17 @@ export default {
         }
       ],
       select: true,
-      title: ["选择角色", "角色选择中...", "角色选定"],
-      selectIndex: 0,
+      title: [
+        "选择角色",
+        "角色选择中...",
+        "角色选定，等待电脑玩家选定角色",
+        "开始游戏中..."
+      ],
+      selectIndex1: 0,
+      selectIndex2: 0,
       init: true,
-      player1Ready:true
+      player1Ready: false,
+      player2Ready: false
     };
   },
   computed: {
@@ -67,33 +78,79 @@ export default {
       }
       if (this.select) {
         return this.title[1];
-      } else {
+      }
+      if (!this.select) {
         return this.title[2];
+      }
+      if (this.player1Ready) {
+        return this.title[3];
       }
       return this.title[0];
     }
   },
-  watch:{
-      select(){
-          if(!this.select){
-              let image=new Image();
-              image.src=this.roles[this.selectIndex].img;
-              image.style="width:300px;height:300px;object-fit:cover;border-radius:8px;margin-top:10px;border:3px solid #eee;";
-              document.querySelector('.player-1').appendChild(image);
-          }else{
-              document.querySelector('.player-1 img').remove();
-          }
+  watch: {
+    selectIndex1() {
+      let div = document.querySelector(".player-1");
+      let button = document.querySelector(".player-1 button");
+      let imgs = document.querySelector(".player-1 img");
+      if (imgs) {
+        imgs.remove();
       }
+      let image = new Image();
+      image.src = this.roles[this.selectIndex1].img;
+      image.style =
+        "display:block;width:300px;height:300px;object-fit:cover;border-radius:8px;margin-top:10px;border:3px solid #eee;position:relative;left:5px;";
+      div.insertBefore(image, button);
+    },
+    selectIndex2() {
+      let div = document.querySelector(".player-2");
+      let button = document.querySelector(".player-2 button");
+      let imgs = document.querySelector(".player-2 img");
+      if (imgs) {
+        imgs.remove();
+      }
+      let image = document.createElement("img");
+      //   let image = new Image();
+      image.src = this.roles[this.selectIndex2].img;
+      image.style =
+        "display:block;width:300px;height:300px;object-fit:cover;border-radius:8px;margin-top:10px;border:3px solid #eee;";
+      div.insertBefore(image, button);
+    },
+    select() {
+      let imgs = document.querySelectorAll(".role img");
+      if (!this.select) {
+        imgs.forEach((item, index) => {
+          if (index != this.selectIndex1) {
+            imgs[index].style = "cursor:not-allowed;transform:none;";
+          }
+        });
+        this.player1Ready = true;
+      } else {
+        imgs.forEach((item, index) => {
+          imgs[index].style = "cursor:unset;";
+        });
+        this.player1Ready = false;
+      }
+    },
+    player1Ready() {
+      let imgs = document.querySelectorAll(".role img");
+      if (this.player1Ready) {
+        this.changeStyle(imgs);
+        setTimeout(() => {
+          this.player2Ready = true;
+        }, 0);
+      }
+    }
   },
   methods: {
-    selectRole(index) {
+    selectRole(indexArr) {
       this.init = false;
-      this.selectIndex = index;
+      let imgs = document.querySelectorAll(".role img");
       if (this.select) {
-        let imgs = document.querySelectorAll(".role img");
-        imgs[index].className = "selected";
+        this.selectIndex1 = indexArr;
+        imgs[indexArr].className = "selected";
         for (let i = 0; i < imgs.length; i++) {
-          if (i != index) {
+          if (i != indexArr) {
             imgs[i].className = "role";
           }
         }
@@ -101,6 +158,12 @@ export default {
     },
     toogle(event) {
       this.select = !this.select;
+    },
+    changeStyle(arr) {
+      let index = Math.floor(Math.random() * 5);
+      arr[index].style =
+        "border: 4px solid #f40303 !important;transform: scale(1.05, 1.05);";
+      this.selectIndex2 = index;
     }
   }
 };
@@ -108,7 +171,8 @@ export default {
 <style scoped>
 .container {
   display: grid;
-  grid-template-areas: "a b c";
+  grid-template-areas: "a b c" "d d d";
+  grid-template-rows: 500px 1fr;
 }
 .left {
   grid-area: a;
@@ -118,6 +182,16 @@ export default {
 }
 .right {
   grid-area: c;
+}
+.bottom {
+  grid-area: d;
+  background: rgba(10, 10, 10, 0.5);
+  width: 80%;
+  margin: 0 auto;
+  border-radius: 8px;
+  height: 45vh;
+  font-size: 1.5em;
+  color: #ddd;
 }
 .title {
   display: inline-block;
@@ -159,7 +233,7 @@ export default {
   border-radius: 5px;
   background: gainsboro;
   border: none;
-  margin-top: 30px;
+  margin: 20px 0 0 0;
   font-size: 1.2em;
 }
 
@@ -167,5 +241,9 @@ export default {
   transform: scale(1.05, 1.05);
 }
 
+.player-1 img,
+.player-1 button {
+  margin: 20px 0 0 0;
+}
 </style>
 
