@@ -1,7 +1,12 @@
 <template>
   <div>
     <div class="row" v-for="(skill,index) in randSkills" :key="index">
-      <img :src="skill.img" :alt="skill.name" :title="skill.name" @click="triggerAttack(skill)">
+      <img
+        :src="skill.img"
+        :alt="skill.name"
+        :title="'技能名称：'+skill.name+'\n技能伤害：'+skill.harm"
+        @click="triggerAttack(skill,randSkills)"
+      >
     </div>
   </div>
 </template>
@@ -81,8 +86,8 @@ export default {
         }
       }
     },
-    triggerAttack(skill) {
-      this.$emit("attack",skill);
+    triggerAttack(skill, randSkills) {
+      this.$emit("attack", skill, randSkills);
     }
   }
 };
@@ -98,8 +103,7 @@ img {
   border-radius: 5px;
 }
 img:hover {
-
   background: rgba(244, 244, 244, 0.8);
-  transform:scale(1.05,1.05);
+  transform: scale(1.05, 1.05);
 }
 </style>

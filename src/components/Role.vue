@@ -9,6 +9,7 @@
             class="progress-bar"
             role="progressbar"
             :style="{width:player1Life+'%',background:'#5cb85c'}"
+            v-life="player1Life"
           >{{player1Life}}</div>
         </div>
       </div>
@@ -17,6 +18,7 @@
       </div>
     </div>
     <div class="middle">
+      <h2 style="margin-top:-10px;font-family: fantasy;font-weight: bold;">Round {{round}}</h2>
       <span class="title">{{computedTitle}}</span>
       <div class="roles">
         <div class="role" v-for="(role,index) in roles" :key="index">
@@ -33,6 +35,7 @@
             class="progress-bar"
             role="progressbar"
             :style="{width:player2Life+'%',background:'#5cb85c'}"
+            v-life="player2Life"
           >{{player2Life}}</div>
         </div>
       </div>
@@ -44,6 +47,28 @@
       <Skill name="skill-bar" v-on:attack="player1Attack"/>
       <div class="fight-content" v-html="gameTip"></div>
       <Skill name="skill-bar"/>
+    </div>
+    <!-- 模态框 -->
+    <div class="modal" tabindex="-1" role="dialog" id="attackResult">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Round {{round}}</h3>
+            <button type="button" class="close" data-dismiss="modal">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <h3>{{result}}</h3>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">知道了</button>
+            <button type="button" class="btn btn-default" @click="nextRound">下一局</button>
+          </div>
+        </div>
+        <!-- /.modal-content -->
+      </div>
+      <!-- /.modal-dialog -->
     </div>
   </div>
 </template>
@@ -92,7 +117,9 @@ export default {
       player2Ready: false,
       player1Life: 100,
       player2Life: 100,
-      gameTip: "对战进行中..."
+      gameTip: "对战进行中...",
+      round: 1,
+      winFlag: true
     };
   },
   computed: {
@@ -117,9 +144,21 @@ export default {
         return this.title[3];
       }
       return this.title[0];
+    },
+    result() {
+      if (this.winFlag) {
+        return "You win.";
+      } else {
+        return "You lose. Try again? ";
+      }
     }
   },
   watch: {
+    player1Life() {
+      if (this.player1Life <= 0 && this.player2Life > 0) {
+        this.winFlag = false;
+      }
+    },
     selectIndex1() {
       let div = document.querySelector(".player-1");
       let button = document.querySelector(".player-1 button");
@@ -172,29 +211,34 @@ export default {
           this.player2Ready = true;
         }, 0);
       }
-    },
-    player1Life() {
-      let lifeBar = document.querySelectorAll(".progress-bar")[0];
-      if (this.player1Life >= 90 && this.player1Life <= 100) {
-        lifeBar.style = "background:#5cb85c";
-      } else if (this.player1Life >= 50 && this.player1Life < 90) {
-        lifeBar.style = "background:#f0ad4e";
-      } else if (this.player1Life < 50) {
-        lifeBar.style = "background:#d9534f";
-      }
-    },
-    player2Life() {
-      let lifeBar = document.querySelectorAll(".progress-bar")[1];
-      if (this.player2Life >= 90 && this.player2Life <= 100) {
-        lifeBar.style = "background:#5cb85c";
-      } else if (this.player2Life >= 50 && this.player2Life < 90) {
-        lifeBar.style = "background:#f0ad4e";
-      } else if (this.player2Life < 50) {
-        lifeBar.style = "background:#d9534f";
+    }
+  },
+  directives: {
+    life(el, binding) {
+      if (binding.value >= 90 && binding.value <= 100) {
+        el.style.background = "#5cb85c";
+      } else if (binding.value >= 50 && binding.value < 90) {
+        el.style.background = "#f0ad4e";
+      } else if (binding.value > 0 && binding.value < 50) {
+        el.style.background = "#d9534f";
+      } else {
+        $("#attackResult").modal("show");
       }
     }
   },
   methods: {
+    nextRound() {
+      $("#attackResult").modal("hide");
+      this.round++;
+      this.init = true;
+      this.select = true;
+      this.selectIndex1 = 10;
+      this.selectIndex2 = 10;
+      this.player1Life = 100;
+      this.player2Life = 100;
+      this.gameTip = "对战进行中...";
+      this.winFlag = true;
+    },
     selectRole(indexArr) {
       this.init = false;
       let imgs = document.querySelectorAll(".role img");
@@ -217,7 +261,7 @@ export default {
         "border: 4px solid #f40303 !important;transform: scale(1.05, 1.05);";
       this.selectIndex2 = index;
     },
-    player1Attack(skill) {
+    player1Attack(skill, randSkills) {
       if (this.player2Life > 0) {
         if (this.player2Life - skill.harm >= 0) {
           this.player2Life -= skill.harm;
@@ -227,7 +271,18 @@ export default {
         this.gameTip +=
           "<br>玩家2被" + skill.name + "伤害了" + skill.harm + "点";
       } else {
-        alert("player2 is die");
+        this.winFlag = true;
+      }
+      let randSkill = randSkills[Math.floor(Math.random() * randSkills.length)];
+      if (this.player1Life > 0) {
+        this.player1Life =
+          this.player1Life - randSkill.harm >= 0
+            ? this.player1Life - randSkill.harm
+            : 0;
+        this.gameTip +=
+          "<br>玩家1被" + randSkill.name + "伤害了" + randSkill.harm + "点";
+      } else {
+        this.winFlag = false;
       }
     }
   }
@@ -331,6 +386,25 @@ export default {
   width: 80%;
   border-radius: 8px;
   padding: 10px;
+}
+
+#attackResult .modal-dialog {
+  height: 200px;
+  position: relative;
+  top: 50%;
+  margin-top: -100px;
+}
+#attackResult .modal-content {
+  background: #62c7f5;
+}
+.modal-footer .btn {
+  margin: 0 auto;
+  color: #fff;
+  font-size: 1.05em;
+  border-color: #fff;
+}
+.modal-footer .btn:hover {
+  background-color: rgba(221, 221, 221, 0.4);
 }
 </style>
 
