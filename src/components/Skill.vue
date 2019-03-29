@@ -19,52 +19,52 @@ export default {
       skills: [
         {
           img: "/static/img/1.png",
-          name: "技能1",
+          name: "小水波biubiubiu技能",
           harm: 10
         },
         {
           img: "/static/img/2.png",
-          name: "技能2",
+          name: "抓水母技能",
           harm: 10
         },
         {
           img: "/static/img/3.png",
-          name: "技能3",
+          name: "投掷蟹黄堡技能",
           harm: 20
         },
         {
           img: "/static/img/4.png",
-          name: "技能4",
+          name: "小蜗技能",
           harm: 20
         },
         {
           img: "/static/img/5.png",
-          name: "技能5",
+          name: "吹泡泡技能",
           harm: 25
         },
         {
           img: "/static/img/6.png",
-          name: "技能6",
+          name: "溜溜笛技能",
           harm: 25
         },
         {
           img: "/static/img/7.png",
-          name: "技能7",
+          name: "恶作剧技能",
           harm: 30
         },
         {
           img: "/static/img/8.png",
-          name: "技能8",
+          name: "奇妙海胆技能",
           harm: 30
         },
         {
           img: "/static/img/9.png",
-          name: "技能9",
+          name: "风雨来袭技能",
           harm: 35
         },
         {
           img: "/static/img/10.png",
-          name: "技能10",
+          name: "冷笑话技能",
           harm: 35
         }
       ],
@@ -72,6 +72,14 @@ export default {
     };
   },
   mounted() {
+    this.composeSkill(this.skillNum);
+  },
+  beforeUpdate(){
+    console.log('beforeUpdate: ',this.skillNum)
+    this.composeSkill(this.skillNum);
+  },
+  updated(){
+    console.log('updated: ',this.skillNum)
     this.composeSkill(this.skillNum);
   },
   methods: {

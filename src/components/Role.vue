@@ -49,6 +49,7 @@
       <div class="fight-content" v-html="gameTip"></div>
       <Skill name="skill-bar" :skillNum="skillNum"/>
     </div>
+    <button class="exit" @click="exitGame">EXIT</button>
     <!-- 模态框 -->
     <div class="modal" tabindex="-1" role="dialog" id="attackResult">
       <div class="modal-dialog" role="document">
@@ -71,7 +72,29 @@
       </div>
       <!-- /.modal-dialog -->
     </div>
+    <div class="modal" tabindex="-1" role="dialog" id="exitGame">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>提示？</h3>
+            <button type="button" class="close" data-dismiss="modal">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <h3>退出游戏？</h3>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal" @click="retStart">确认</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+          </div>
+        </div>
+        <!-- /.modal-content -->
+      </div>
+      <!-- /.modal-dialog -->
+    </div>
   </div>
+  
 </template>
 <script>
 import Skill from "@/components/Skill";
@@ -122,7 +145,7 @@ export default {
       round: 1,
       winFlag: true,
       level: 1,
-      skillNum:4
+      skillNum: 3
     };
   },
   computed: {
@@ -245,9 +268,9 @@ export default {
     nextRound() {
       $("#attackResult").modal("hide");
       this.round++;
-      if(this.winFlag){
-        this.level+=1
-        this.skillNum=this.skillNum>=6?this.skillNum:++this.skillNum
+      if (this.winFlag) {
+        this.level += 1;
+        this.skillNum = this.skillNum >= 6 ? this.skillNum : ++this.skillNum;
       }
       this.init = true;
       this.select = true;
@@ -257,6 +280,12 @@ export default {
       this.player2Life = 100;
       this.gameTip = "对战进行中...";
       this.winFlag = true;
+    },
+    exitGame(){
+      $('#exitGame').modal('show')
+    },
+    retStart(){
+      this.$router.push('/')
     },
     selectRole(indexArr) {
       this.init = false;
@@ -417,7 +446,7 @@ export default {
   padding: 10px;
 }
 
-#attackResult .modal-dialog {
+.modal-dialog {
   height: 200px;
   position: relative;
   top: 50%;
@@ -425,6 +454,9 @@ export default {
 }
 #attackResult .modal-content {
   background: #62c7f5;
+}
+#exitGame .modal-content {
+  background: #7e8182;
 }
 .modal-footer .btn {
   margin: 0 auto;
@@ -434,6 +466,24 @@ export default {
 }
 .modal-footer .btn:hover {
   background-color: rgba(221, 221, 221, 0.4);
+}
+.exit {
+  font-family: fantasy;
+  height: 80px;
+  border-radius: 50%;
+  width: 80px;
+  position: fixed;
+  top: 90vh;
+  left: 20px;
+  background: #ddd;
+}
+.exit:hover{
+  transform:rotate(360deg);
+  background:#03a9f4;
+  border:none;
+  color:#ddd;
+  font-size:1.2em;
+  transition-duration:0.5s;
 }
 </style>
 
