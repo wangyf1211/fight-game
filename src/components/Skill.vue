@@ -13,6 +13,7 @@
 <script>
 export default {
   name: "skill-bar",
+  props:['skillNum'],
   data() {
     return {
       skills: [
@@ -71,7 +72,7 @@ export default {
     };
   },
   mounted() {
-    this.composeSkill(4);
+    this.composeSkill(this.skillNum);
   },
   methods: {
     composeSkill(len) {

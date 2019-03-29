@@ -1,7 +1,8 @@
 <template>
   <div class="_container">
     <div class="left">
-      <h3>Player 1</h3>
+      <h3 style="display: inline-block;margin-right:10px;">Player 1</h3>
+      <span class="level">Lv.{{level}}</span>
       <div>
         <span>生命值</span>
         <div class="progress" style="width:220px;">
@@ -44,9 +45,9 @@
       </div>
     </div>
     <div class="bottom" v-if="player2Ready">
-      <Skill name="skill-bar" v-on:attack="player1Attack"/>
+      <Skill name="skill-bar" :skillNum="skillNum" v-on:attack="player1Attack"/>
       <div class="fight-content" v-html="gameTip"></div>
-      <Skill name="skill-bar"/>
+      <Skill name="skill-bar" :skillNum="skillNum"/>
     </div>
     <!-- 模态框 -->
     <div class="modal" tabindex="-1" role="dialog" id="attackResult">
@@ -62,7 +63,7 @@
             <h3>{{result}}</h3>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">知道了</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal" @click="restart">重新开始</button>
             <button type="button" class="btn btn-default" @click="nextRound">下一局</button>
           </div>
         </div>
@@ -119,7 +120,9 @@ export default {
       player2Life: 100,
       gameTip: "对战进行中...",
       round: 1,
-      winFlag: true
+      winFlag: true,
+      level: 1,
+      skillNum:4
     };
   },
   computed: {
@@ -227,9 +230,25 @@ export default {
     }
   },
   methods: {
+    restart() {
+      this.round = 1;
+      this.level = 1;
+      this.init = true;
+      this.select = true;
+      this.selectIndex1 = 10;
+      this.selectIndex2 = 10;
+      this.player1Life = 100;
+      this.player2Life = 100;
+      this.gameTip = "对战进行中...";
+      this.winFlag = true;
+    },
     nextRound() {
       $("#attackResult").modal("hide");
       this.round++;
+      if(this.winFlag){
+        this.level+=1
+        this.skillNum=this.skillNum>=6?this.skillNum:++this.skillNum
+      }
       this.init = true;
       this.select = true;
       this.selectIndex1 = 10;
@@ -312,6 +331,16 @@ export default {
   display: flex;
   justify-content: space-between;
   width: 80%;
+}
+.info {
+  justify-content: center;
+}
+.level {
+  display: inline-block;
+  width: 60px;
+  font-size: 1.2em;
+  background: #66bb6a;
+  border-radius: 5px;
 }
 .title {
   display: inline-block;
